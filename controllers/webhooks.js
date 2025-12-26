@@ -66,9 +66,7 @@ export const stripeWebhooks = async (req, res) => {
 
     let event;
     try {
-        // req.body must be a raw Buffer provided by express.raw
         event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-        console.log('[Stripe] Event:', event.type);
 
         switch (event.type) {
             case 'payment_intent.succeeded': {
