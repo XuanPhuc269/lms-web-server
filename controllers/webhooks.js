@@ -66,9 +66,10 @@ export const stripeWebhooks = async (req, res) => {
 
     let event;
     try {
+        // req.body must be a raw Buffer provided by express.raw
         event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('[Stripe] Event:', event.type);
 
-        // Handle the event
         switch (event.type) {
             case 'payment_intent.succeeded': {
                 const paymentIntent = event.data.object;
@@ -96,7 +97,7 @@ export const stripeWebhooks = async (req, res) => {
 
                 break;
             }
-            case 'payment_method.failed': {
+            case 'payment_intent.payment_failed': {
                 const paymentIntent = event.data.object;
                 const paymentIntentId = paymentIntent.id;
 
@@ -113,17 +114,14 @@ export const stripeWebhooks = async (req, res) => {
 
                 break;
             }
-            // ... handle other event types
             default:
-                console.log(`Unhandled event type ${event.type}`);
+                console.log(`[Stripe] Unhandled event type ${event.type}`);
         }
 
-        res.json({ received: true });
+        res.status(200).json({ received: true });
     } catch (error) {
-        res.json({
-            success: false,
-            message: error.message
-        });
+        console.error('[Stripe] Webhook error:', error.message);
+        res.status(400).json({ success: false, message: error.message });
     }
 
 }

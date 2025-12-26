@@ -20,6 +20,9 @@ await connectCloudinary();
 
 // Middleware
 app.use(cors());
+
+app.post('/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
+
 app.use(express.json());
 app.use(clerkMiddleware());
 
@@ -29,7 +32,6 @@ app.post("/clerk", express.json(), clerkWebhooks);
 app.use('/api/educator', express.json(), educatorRouter)
 app.use('/api/course', express.json(), courseRouter)
 app.use('/api/user', express.json(), userRouter);
-app.post('/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
