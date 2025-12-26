@@ -1,4 +1,6 @@
 import { Webhook } from "svix";
+import Stripe from "stripe";
+import Purchase from "../models/PurchaseSchema.js";
 import User from "../models/User.js";
 import Course from "../models/Course.js";
 
@@ -58,10 +60,9 @@ export const clerkWebhooks = async (req, res) => {
     }
 }
 
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 export const stripeWebhooks = async (req, res) => {
-    const sig = request.headers['stripe-signature'];
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const sig = req.headers['stripe-signature'];
 
     let event;
     try {
