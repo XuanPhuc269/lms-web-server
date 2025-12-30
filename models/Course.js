@@ -30,7 +30,9 @@ const courseSchema = new mongoose.Schema(
         courseContent: [chapterSchema],
         courseRatings: [
             {
-                userId: { type: String }, rating: { type: Number, min: 1, max: 5 }
+                userId: { type: String }, 
+                rating: { type: Number, min: 1, max: 5 },
+                review: { type: String, required: false }
             }
         ],
         educator: { type: String, ref: "User", required: true },

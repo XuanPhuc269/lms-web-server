@@ -154,7 +154,7 @@ export const getUserCourseProgress = async (req, res) => {
 
 export const addUserRating = async (req, res) => {
     const userId = req.auth.userId;
-    const { courseId, rating } = req.body;
+    const { courseId, rating, review } = req.body;
 
     if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
         return res.json({ success: false, message: 'Invalid data provided.' });
@@ -180,8 +180,9 @@ export const addUserRating = async (req, res) => {
 
         if (existingRatingIndex > -1) {
             course.courseRatings[existingRatingIndex].rating = Number(rating);
+            course.courseRatings[existingRatingIndex].review = review;
         } else {
-            course.courseRatings.push({ userId, rating: Number(rating) });
+            course.courseRatings.push({ userId, rating: Number(rating), review });
         }
 
         await course.save();
@@ -189,7 +190,7 @@ export const addUserRating = async (req, res) => {
         return res.json({
             success: true,
             message: 'Rating submitted successfully.',
-            courseRatings: course.courseRatings, // tùy chọn: giúp FE cập nhật ngay
+            courseRatings: course.courseRatings, 
         });
     } catch (error) {
         return res.json({ success: false, message: error.message });
