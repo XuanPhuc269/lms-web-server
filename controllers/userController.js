@@ -68,7 +68,7 @@ export const purchaseCourse = async (req, res) => {
         }
 
         const newPurchase = await Purchase.create(purchaseData);
-        
+
         // Stripe Gateway
         const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -76,7 +76,7 @@ export const purchaseCourse = async (req, res) => {
 
         const line_items = [{
             price_data: {
-                currency, 
+                currency,
                 product_data: {
                     name: courseData.courseTitle,
                 },
@@ -99,7 +99,7 @@ export const purchaseCourse = async (req, res) => {
             success: true,
             session_url: session.url
         })
-        
+
     } catch (error) {
         res.json({
             success: false,
@@ -116,7 +116,7 @@ export const updateUserCourseProgress = async (req, res) => {
 
         if (progressData) {
             if (progressData.lectureCompleted.includes(lectureId)) {
-                return res.json({success: true, message: 'Lecture already completed'})
+                return res.json({ success: true, message: 'Lecture already completed' })
             }
 
             progressData.lectureCompleted.push(lectureId)
@@ -155,36 +155,43 @@ export const getUserCourseProgress = async (req, res) => {
 export const addUserRating = async (req, res) => {
     const userId = req.auth.userId;
     const { courseId, rating } = req.body;
-    
-    if (!courseId || !userId || !rating || rating < 1 || rating > 5) { 
+
+    if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
         return res.json({ success: false, message: 'Invalid data provided.' });
     }
 
     try {
         const course = await Course.findById(courseId);
-        
-        if (!course) {{
+        if (!course) {
             return res.json({ success: false, message: 'Course not found.' });
-        }}
+        }
 
         const user = await User.findById(userId);
-
-        if (!user || !user.enrolledCourses.includes(courseId)) {
+        const isEnrolled = (user?.enrolledCourses || []).some(
+            (id) => id.toString() === courseId.toString()
+        );
+        if (!user || !isEnrolled) {
             return res.json({ success: false, message: 'User not enrolled in the course.' });
         }
 
-        const existingRatingIndex = course.ratings.findIndex(r => r.userId.toString() === userId);
+        const existingRatingIndex = (course.courseRatings || []).findIndex(
+            (r) => r.userId.toString() === userId.toString()
+        );
 
         if (existingRatingIndex > -1) {
-            course.courseRatings[existingRatingIndex].rating = rating;
+            course.courseRatings[existingRatingIndex].rating = Number(rating);
         } else {
-            course.courseRatings.push({ userId, rating });
+            course.courseRatings.push({ userId, rating: Number(rating) });
         }
 
         await course.save();
 
-        return res.json({ success: true, message: 'Rating submitted successfully.' });
+        return res.json({
+            success: true,
+            message: 'Rating submitted successfully.',
+            courseRatings: course.courseRatings, // tùy chọn: giúp FE cập nhật ngay
+        });
     } catch (error) {
-        res.json({ success: false, message: error.message });
+        return res.json({ success: false, message: error.message });
     }
-}
+};
