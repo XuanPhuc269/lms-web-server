@@ -73,6 +73,10 @@ export const purchaseCourse = async (req, res) => {
 
     // Stripe Gateway
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const newPurchase = await Purchase.create(purchaseData);
+
+    // Stripe Gateway
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const currency = process.env.CURRENCY.toLowerCase();
 
@@ -190,7 +194,7 @@ export const addUserRating = async (req, res) => {
       });
     }
 
-    const existingRatingIndex = course.courseRatings.findIndex(
+    const existingRatingIndex = course.ratings.findIndex(
       (r) => r.userId.toString() === userId
     );
 
